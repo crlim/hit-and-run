@@ -144,10 +144,10 @@ axes = function(df){
 
 
 # label the axes
-label_axes = function(df) {
+label_axes = function(df,finger=FALSE) {
   m  = dim(df)[2] - 12
   
-  if (m == 7) {
+  if (finger==TRUE & m==7) {
     axis(3, at=1:13, lwd=0, cex.axis=0.3, 
          lab=c('FP','FS','DI','PI','EI','LUM','EC','L1','L2','L3','L1W','L2W','L3W'), 
          pos=1, padj=0)
@@ -167,7 +167,7 @@ label_axes = function(df) {
 
 
 # plot and save to pdf
-pdf_plot = function(df,alpha) {
+pdf_plot = function(df,alpha,finger=FALSE) {
   # start pdf
   pdf(file="Downloads/figure.pdf", height=2.3, width=4,compress=FALSE)
   # plot lines
@@ -176,13 +176,13 @@ pdf_plot = function(df,alpha) {
   # plot axes
   axes(df)
   # label axes
-  label_axes(df)
+  label_axes(df,finger)
   # flush out pdf
   dev.off()
 }
 
 # pdf_mplot
-pdf_mplot = function(df,alpha) {
+pdf_mplot = function(df,alpha,finger=FALSE) {
   # start pdf
   pdf(file="Downloads/mult_figure.pdf", height=3, width=4,compress=FALSE)
   # make multiple subplots
@@ -194,7 +194,7 @@ pdf_mplot = function(df,alpha) {
   temp = df[df$`4` < 0.6,]
   points(temp,alpha)
   axes(df)
-  label_axes(df)
+  label_axes(df,finger)
   
   # 2 DI < 60%
   temp = df[df$`3` < 0.6,]
@@ -210,7 +210,7 @@ pdf_mplot = function(df,alpha) {
   temp = df[df$`8` %in% sort(df$`8`)[1:floor(N/2)],]
   points(temp,alpha)
   axes(df)
-  label_axes(df)
+  label_axes(df,finger)
   
   # 5 lower 50% of L2w
   temp = df[df$`12` %in% sort(df$`12`)[1:floor(N/2)],]
@@ -234,22 +234,22 @@ pdf_mplot = function(df,alpha) {
 # make_plot
 # in: csv file (file), (fmax), number of points (N), transparency (t)
 # out: pdf of plot in Downloads folder
-make_plot = function(file, fmax, N, t) {
+make_plot = function(file, fmax, N, t, finger=FALSE) {
   data = read.csv(file)
   df = make_dataframe(data[1:N,])
   df = fill_costs(df,fmax)
   df = fill_axes(df)
-  pdf_plot(df,t)
+  pdf_plot(df,t,finger)
 }
 
 
 
 # make_mplot
-make_mplot = function(file, fmax, N, t) {
+make_mplot = function(file, fmax, N, t, finger=FALSE) {
   data = read.csv(file)
   df = make_dataframe(data[1:N,])
   df = fill_costs(df,fmax)
   df = fill_axes(df)
-  pdf_mplot(df,t)
+  pdf_mplot(df,t,finger)
 }
 
