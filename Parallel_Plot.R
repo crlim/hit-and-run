@@ -3,48 +3,55 @@
 # to create plot, call the function make_plot
 
 # returns an extended dataframe from original data
+# make 3 sections: 1= data, 2= normalized costs, 3= raw costs
 make_dataframe = function(data) {
-  data[8:19] = 0
-  colnames(data) = 1:19
+  m = dim(data)[2]
+  data[(m+1):(m+12)] = 0
+  colnames(data) = 1:(m+12)
   return(data)
 }
 
 
-# fills cost and alpha columns 14-19
-fill_costs = function(df,JR,fmax) {
+# fills raw cost columns (14-19 for finger)
+# section 3 of dataframe
+fill_costs = function(df,fmax) {
+  m  = dim(df)[2] - 12
+  
   # L1 (col 14)
-  df[,14] = rowSums(df[,1:7])
+  df[,(m+7)] = rowSums(df[,1:m])
   
   # L2 (col 15)
-  df[,15] = (rowSums(df[,1:7]^2))^(1/2)
+  df[,(m+8)] = (rowSums(df[,1:m]^2))^(1/2)
   
   # L3 (col 16)
-  df[,16] = (rowSums(df[,1:7]^3))^(1/3)
+  df[,(m+9)] = (rowSums(df[,1:m]^3))^(1/3)
   
   
-  F0 = matrix(fmax,dim(df)[1],7,byrow=TRUE)
+  F0 = matrix(fmax,dim(df)[1],m,byrow=TRUE)
   
   # Lw1 (col 17)
-  df[,17] = rowSums(df[,1:7]*F0)
+  df[,(m+10)] = rowSums(df[,1:m]*F0)
   
   # Lw2 (col 18)
-  df[,18] = (rowSums((df[,1:7]*F0)^2))^(1/2)
+  df[,(m+11)] = (rowSums((df[,1:m]*F0)^2))^(1/2)
   
   # Lw3 (col 19)
-  df[,19] = (rowSums((df[,1:7]*F0)^3 ))^(1/3)
+  df[,(m+12)] = (rowSums((df[,1:m]*F0)^3 ))^(1/3)
   
   return(df)
 }
 
 
-# fills adjusted axes columns 8-13
+# fills adjusted axes columns (8-13 for finger)
 # normalizes cost columns
+# section 2 of dataframe
 fill_axes = function(df) {
+  m  = dim(df)[2] - 12
   
-  for (i in 8:13) {
+  for (i in (m+1):(m+6)) {
     # subtract by lowest
-    low = min(df[,i+6])
-    df[,i] = df[,i+6] - low
+    low = min(df[,(i+6)])
+    df[,i] = df[,(i+6)] - low
     
     # divided by new highest
     high = max(df[,i])
@@ -60,16 +67,18 @@ fill_axes = function(df) {
 
 # plot point lines
 points = function(df,alpha) {
+  m  = dim(df)[2] - 12
+  
   # define transparency and margins
   color_transparent <- adjustcolor(col='blue', alpha.f = alpha)
   
   #plot points
-  plot(colnames(df)[1:13], df[1,1:13], type='l', col=color_transparent, ylim=c(0.0,1.1), 
+  plot(colnames(df)[1:(m+6)], df[1,1:(m+6)], type='l', col=color_transparent, ylim=c(0.0,1.1), 
        lwd=0.2, axes=FALSE,ann=FALSE)
   
   N = dim(df)[1]
   for (i in 2:N) {
-    lines(colnames(df)[1:13], df[i,1:13], type='l', lwd=0.2, col=color_transparent, ylim=c(0.0,1.1))
+    lines(colnames(df)[1:(m+6)], df[i,1:(m+6)], type='l', lwd=0.2, col=color_transparent, ylim=c(0.0,1.1))
   }
 }
 
@@ -77,8 +86,8 @@ points = function(df,alpha) {
 # calculate the axes bounds and labels
 get_axis_bounds = function(df,axnum) {
   # calculate labels
-  lower = min(df[,axnum+6])
-  upper = max(df[,axnum+6])
+  lower = min(df[,(axnum+6)])
+  upper = max(df[,(axnum+6)])
   
   # find appropriate well-spaced labels
   scale = if (upper < 10) 10 else 1
@@ -107,14 +116,15 @@ get_axis_bounds = function(df,axnum) {
 
 # plot axes
 axes = function(df){
+  m  = dim(df)[2] - 12
   
   # create custom axis for each muscle
-  for (axnum in 1:7) {
+  for (axnum in 1:m) {
     axis(2, at=seq(0,1,0.2), pos=axnum, las=2, lwd=0.2, tck=-0.005, cex.axis=0.2, hadj=1.5)
   }
   
   # custom axes for costs and alpha
-  for (axnum in 8:13) {
+  for (axnum in (m+1):(m+6)) {
     A = get_axis_bounds(df, axnum)
     
     if (A$high != Inf) {
@@ -134,10 +144,25 @@ axes = function(df){
 
 
 # label the axes
-label_axes = function() {
-  axis(3, at=1:13, lwd=0, cex.axis=0.3, 
-       lab=c('FP','FS','DI','PI','EI','LUM','EC','L1','L2','L3','L1W','L2W','L3W'), 
-       pos=1, padj=0)
+label_axes = function(df) {
+  m  = dim(df)[2] - 12
+  
+  if (m == 7) {
+    axis(3, at=1:13, lwd=0, cex.axis=0.3, 
+         lab=c('FP','FS','DI','PI','EI','LUM','EC','L1','L2','L3','L1W','L2W','L3W'), 
+         pos=1, padj=0)
+  }
+  else {
+    mlabels = 1:(m+6)
+    for (i in 1:m){
+      mlabels[i] = paste(c("M",i),collapse="")
+    }
+    mlabels[(m+1):(m+6)] = c('L1','L2','L3','L1W','L2W','L3W')
+    
+    axis(3, at=1:(m+6), lwd=0, cex.axis=0.3,
+         lab=mlabels,
+         pos=1,padj=0)
+  }
 }
 
 
@@ -151,7 +176,7 @@ pdf_plot = function(df,alpha) {
   # plot axes
   axes(df)
   # label axes
-  label_axes()
+  label_axes(df)
   # flush out pdf
   dev.off()
 }
@@ -169,7 +194,7 @@ pdf_mplot = function(df,alpha) {
   temp = df[df$`4` < 0.6,]
   points(temp,alpha)
   axes(df)
-  label_axes()
+  label_axes(df)
   
   # 2 DI < 60%
   temp = df[df$`3` < 0.6,]
@@ -185,7 +210,7 @@ pdf_mplot = function(df,alpha) {
   temp = df[df$`8` %in% sort(df$`8`)[1:floor(N/2)],]
   points(temp,alpha)
   axes(df)
-  label_axes()
+  label_axes(df)
   
   # 5 lower 50% of L2w
   temp = df[df$`12` %in% sort(df$`12`)[1:floor(N/2)],]
@@ -207,12 +232,12 @@ pdf_mplot = function(df,alpha) {
 
 
 # make_plot
-# in: csv file (file), (JR), (fmax) number of points (N), transparency (t)
+# in: csv file (file), (fmax), number of points (N), transparency (t)
 # out: pdf of plot in Downloads folder
-make_plot = function(file, JR, fmax, N, t) {
+make_plot = function(file, fmax, N, t) {
   data = read.csv(file)
   df = make_dataframe(data[1:N,])
-  df = fill_costs(df,JR,fmax)
+  df = fill_costs(df,fmax)
   df = fill_axes(df)
   pdf_plot(df,t)
 }
@@ -220,10 +245,10 @@ make_plot = function(file, JR, fmax, N, t) {
 
 
 # make_mplot
-make_mplot = function(file, JR, fmax, N, t) {
+make_mplot = function(file, fmax, N, t) {
   data = read.csv(file)
   df = make_dataframe(data[1:N,])
-  df = fill_costs(df,JR,fmax)
+  df = fill_costs(df,fmax)
   df = fill_axes(df)
   pdf_mplot(df,t)
 }
