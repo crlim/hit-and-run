@@ -123,7 +123,7 @@ axes = function(df){
     axis(2, at=seq(0,1,0.2), pos=axnum, las=2, lwd=0.2, tck=-0.005, cex.axis=0.2, hadj=1.5)
   }
   
-  # custom axes for costs and alpha
+  # custom axes for costs
   for (axnum in (m+1):(m+6)) {
     A = get_axis_bounds(df, axnum)
     
