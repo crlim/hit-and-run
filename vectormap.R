@@ -15,7 +15,7 @@ num_muscles = function(df) {
 }
 
 # return matrix of unique tasks
-# default now is in order of appearance (for sample: small to large)
+# default now is in order of appearance (for sample csv: small to large)
 task_df = function(df) {
   N = num_muscles(df)
   result = unique(df[,(N+1):(N+4)])
@@ -30,7 +30,7 @@ num_tasks = function(df){
 }
 
 # asign task numbers for each row of activations
-# inputs: original df, unique tasks (in the order you want them)
+# inputs: original df, unique task matrix (in the order you want them)
 assign_tasks = function(df, tasks) {
   df['task'] = 0
   N = num_tasks(df)
@@ -40,7 +40,15 @@ assign_tasks = function(df, tasks) {
   return(df)
 }
 
-# make histogram for 1 task. task number
+# make adjusted dataframe directly from file
+adjusted_dataframe = function(file){
+  df = DataFrame(file)
+  tasks = task_df(df)
+  newdf = assign_tasks(df,tasks)
+  return(newdf)
+}
+
+# make histogram for 1 task
 histogram = function(newdf,task,muscle,bins,xmin=0,xmax=1) {
   arr = newdf[newdf$task == task,muscle]
   breaks = seq(xmin,xmax,length=bins+1)
@@ -48,7 +56,7 @@ histogram = function(newdf,task,muscle,bins,xmin=0,xmax=1) {
 }
 
 # make counts for every task 
-# flip so that first task is on top (as the highest number)
+# flip so that first task is on top (as the highest y)
 counts = function(newdf,muscle,bins,xmin=0,xmax=1){
   N = num_tasks(newdf)
   result = mapply(histogram, task=1:N,
@@ -67,8 +75,6 @@ valid_muscle = function(df, muscle){
     return(TRUE)
   }
 }
-
-# TODO: lines for min/max (dotted), center (solid)
 
 # return min max for 1 task
 minmax = function(newdf,task,muscle) {
@@ -122,7 +128,7 @@ axes = function(freq,xmin=0,xmax=1,labels=c()){
   else{
     labels = labels[length(labels):1]
   }
-  axis(4, at=1:N, labels=labels, lwd=0, lwd.ticks=0.5)
+  axis(4, at=1:N, labels=labels, lwd=0, lwd.ticks=0.5, las=2)
   mtext("task",side=4, line=3)
 }
 
@@ -133,7 +139,8 @@ plotmap = function(freq,xmin=0,xmax=1){
   par(mai=c(1.02,0.82,0.82,1.02))
   
   # colors
-  r = colorRampPalette(c("gray88","blue"))(1000)
+  #r = colorRampPalette(c("gray88","blue"))(1000)
+  r = colorRampPalette(c("gray88","yellow","orange","red"))(1000)
   
   # plot
   N = dim(freq)[2] # num tasks
@@ -146,9 +153,7 @@ plotmap = function(freq,xmin=0,xmax=1){
 # NOTE: labels are from top to bottom
 vectormap = function(file, muscle, bins, maximal, xmin=0, xmax=1,labels=c()) {
   # adjusted df with tasks
-  df = DataFrame(file)
-  tasks = task_df(df)
-  newdf = assign_tasks(df,tasks)
+  newdf = adjusted_dataframe(file)
   
   # check for valid muscle number
   if (!valid_muscle(df,muscle)) return()
@@ -175,11 +180,12 @@ vectormap = function(file, muscle, bins, maximal, xmin=0, xmax=1,labels=c()) {
 sample = 'Documents/USC/space/output/tests/sample.csv'
 maxval = c(0.20443228678688036, 0.13803648681868025, 1.0000000000000004, 0.0, 0.32321402147358713, 1.0, 1.0)
 
+# try for all muscles in finger
 for (i in 1:7){
   vectormap(sample,i,20,labels=seq(0,0.9,length=10),maximal=maxval)
 }
 
-vectormap(sample,2,20,maxval)
-vectormap(sample,1,20,labels=seq(0,0.9,length=10))
-vectormap(sample,9,20)
-vectormap(sample,2,20,labels=c('first','second','third','f','f','s','s'))
+vectormap(sample,7,20,maxval)
+vectormap(sample,1,20,maxval,labels=seq(0,0.9,length=10))
+vectormap(sample,9,20,maxval)
+vectormap(sample,2,20,maxval,labels=c('f','s','t','f','f','s','s','e','n','t'))
