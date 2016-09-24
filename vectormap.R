@@ -177,15 +177,16 @@ vectormap = function(file, muscle, bins, maximal, xmin=0, xmax=1,labels=c()) {
 ###################
 ##     main      ##
 ###################
-sample = 'Documents/USC/space/output/tests/sample.csv'
+sample = '~/Documents/USC/space/output/tests/sample.csv'
 maxval = c(0.20443228678688036, 0.13803648681868025, 1.0000000000000004, 0.0, 0.32321402147358713, 1.0, 1.0)
 
-# try for all muscles in finger
+# vectormap for each muscle in finger
 for (i in 1:7){
   vectormap(sample,i,20,labels=seq(0,0.9,length=10),maximal=maxval)
 }
 
+# examples of ways to call vectormap
 vectormap(sample,7,20,maxval)
 vectormap(sample,1,20,maxval,labels=seq(0,0.9,length=10))
-vectormap(sample,9,20,maxval)
+#vectormap(sample,9,20,maxval) # this one calls an invalid muscle number
 vectormap(sample,2,20,maxval,labels=c('f','s','t','f','f','s','s','e','n','t'))
