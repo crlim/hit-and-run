@@ -128,6 +128,7 @@ axes = function(freq,xmin=0,xmax=1,labels=c()){
   else{
     labels = labels[length(labels):1]
   }
+  N = length(labels)
   axis(4, at=1:N, labels=labels, lwd=0, lwd.ticks=0.5, las=2)
   mtext("task",side=4, line=3)
 }
@@ -156,13 +157,13 @@ vectormap = function(file, muscle, bins, maximal, xmin=0, xmax=1,labels=c()) {
   newdf = adjusted_dataframe(file)
   
   # check for valid muscle number
-  if (!valid_muscle(df,muscle)) return()
+  if (!valid_muscle(newdf,muscle)) return()
 
   # get counts
   freq = counts(newdf,muscle,bins, xmin, xmax)
   
   # pdf plot
-  filename=paste(c("Downloads/Figures/figure_",as.character(muscle),".pdf"),collapse="")
+  filename=paste(c("~/Downloads/Figures/figure_",as.character(muscle),".pdf"),collapse="")
   pdf(file=filename, height=7, width=7,compress=FALSE)
   
   plotmap(freq,xmin,xmax)
